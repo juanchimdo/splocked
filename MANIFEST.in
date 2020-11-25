@@ -1,0 +1,3 @@
+graft splocked
+global-exclude *.py[cod] __pycache__ *.so *.ipynb
+recursive-exclude  splocked/jupy *
