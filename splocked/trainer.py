@@ -31,8 +31,8 @@ def preprocess(df, test_size = 0.3, ):
 
 def train_model(X_train, y_train):
     """method that trains the model"""
-    rgs = linear_model.Lasso(alpha=0.1)
-    rgs.fit(X_train, y_train)
+    #rgs = linear_model.Lasso(alpha=0.1)
+    #rgs.fit(X_train, y_train)
     return rgs
 
 
