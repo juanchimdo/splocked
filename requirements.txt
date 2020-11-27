@@ -8,6 +8,6 @@ black
 yapf
 python-gitlab
 twine
+streamlit
 six==1.15.0
 pandas==1.1.4
-
