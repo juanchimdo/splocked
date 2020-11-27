@@ -1,17 +1,18 @@
 import pandas as pd
-from splocked.utils import *
-from  splocked.model  import *
-from sklearn.model_selection import train_test_split
-import datetime
-import os
-from google.cloud import storage
-import pandas as pd
-from sklearn import linear_model
 import numpy as np
 import joblib
 import time
+import datetime
+import os
+
+from sklearn import linear_model
+from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import EarlyStopping
 
+from google.cloud import storage
+
+from splocked.utils import *
+from  splocked.model import *
 
 ### GCP configuration - - - - - - - - - - - - - - - - - - -
 
@@ -73,21 +74,11 @@ def get_small_df(nrows=None):
       df = df.loc[:nrows]
     return df
 
-def preprocess(df, test_size = 0.3):
+def preprocess(df, test_size=0.3):
     """method that pre-processes the data"""
-    # Selects only the specified amount of samples
 
-    # Create a single column from the title of the review_summary and review_text as review
-    df['review'] = df['review_summary'] + ' ' + df['review_text']
-
-    # Filter only 'is_spoiler' and 'review' columns
-    df = df[['is_spoiler', 'review']]
-
-    # Convert boolean to binary the 'is_spoiler' function
-    df['is_spoiler'] = boolean_to_binary_array(df['is_spoiler'])
-
-    # Split the data and convert is_spoiler to np.array
-    X_train, X_test, y_train, y_test = train_test_split(df['review'], np.array(df['is_spoiler']), test_size=test_size)
+    # Split the data
+    X_train, X_test, y_train, y_test = train_test_split(df[['review']], np.array(df['is_spoiler']), test_size=test_size)
 
     # Make a word_to_id dict based on the training data
     word_dict = word_to_id(X_train)

@@ -31,7 +31,7 @@ def embed(sentences, word_to_id):
     '''
     sentences = convert_sentences(sentences)
     sentences = tokenize(sentences, word_to_id)
-    sentences = pad_sequences(sentences, dtype='float32', padding='post')
+    sentences = pad_sequences(sentences, maxlen=150, dtype='float32', padding='post')
     return sentences
 
 def boolean_to_binary_array(list):
