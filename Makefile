@@ -1,3 +1,57 @@
+##### Data  - - - - - - - - - - - - - - - - - - - - - - - -
+LOCAL_PATH=raw_data/IMDB_reviews.json
+BUCKET_FOLDER=data
+
+### GCP Storage - - - - - - - - - - - - - - - - - - - - - -
+PROJECT_ID=splocked
+BUCKET_NAME=splocked-betancourt-1
+
+# bucket directory in which to store the uploaded file (we choose to name this data as a convention)
+
+##### Training  - - - - - - - - - - - - - - - - - - - - - -
+
+# will store the packages uploaded to GCP for the training
+BUCKET_TRAINING_FOLDER = 'trainings'
+
+##### Package params  - - - - - - - - - - - - - - - - - - -
+
+# name for the uploaded file inside the bucket folder (here we choose to keep the name of the uploaded file)
+# BUCKET_FILE_NAME=another_file_name_if_I_so_desire.csv
+BUCKET_FILE_NAME=$(shell basename ${LOCAL_PATH})
+
+REGION=europe-west1
+
+set_project:
+	-@gcloud config set project ${PROJECT_ID}
+
+create_bucket:
+	-@gsutil mb -l ${REGION} -p ${PROJECT_ID} gs://${BUCKET_NAME}
+
+upload_data:
+	# -@gsutil cp train_1k.csv gs://wagon-ml-my-bucket-name/data/train_1k.csv
+	-@gsutil cp ${LOCAL_PATH} gs://${BUCKET_NAME}/${BUCKET_FOLDER}/${UPLOADED_FILE_NAME}
+
+run_locally:
+	@python -m ${PACKAGE_NAME}.${FILENAME}
+
+gcp_submit_training:
+	gcloud ai-platform jobs submit training ${JOB_NAME} \
+		--job-dir gs://${BUCKET_NAME}/${BUCKET_TRAINING_FOLDER} \
+		--package-path ${PACKAGE_NAME} \
+		--module-name ${PACKAGE_NAME}.${FILENAME} \
+		--python-version=${PYTHON_VERSION} \
+		--runtime-version=${RUNTIME_VERSION} \
+		--region ${REGION} \
+		--stream-logs
+
+clean:
+	@rm -f */version.txt
+	@rm -f .coverage
+	@rm -fr */__pycache__ __pycache__
+	@rm -fr build dist *.dist-info *.egg-info
+	@rm -fr */*.pyc
+
+
 # ----------------------------------
 #          INSTALL & TEST
 # ----------------------------------
@@ -58,3 +112,5 @@ pypi_test:
 
 pypi:
 	@twine upload dist/* -u lologibus2
+
+
