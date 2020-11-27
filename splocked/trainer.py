@@ -89,6 +89,12 @@ def preprocess(df, test_size=0.3):
 
     return X_train, X_test, y_train, y_test, word_dict
 
+
+def word_to_id(X_train):
+  pass
+
+def preprocessing(list_of_sentences, word_to_id)
+
 def train_model(X_train, y_train, vocab_size):
     """method that trains the model"""
     es = EarlyStopping(patience=5, restore_best_weights=True)
@@ -128,7 +134,10 @@ def save_model(model):
 
     print("STARTING TO SAVE MODEL IN GOOGLE CLOUD...", end='\n')
     model.save(f"gs://{BUCKET_NAME}/models/{MODEL_NAME}/{MODEL_VERSION}", save_format='tf')
-    print(f"Saved model under gs://${BUCKET_NAME}/${MODEL_NAME}/${UPLOADED_FILE_NAME}")
+    print(f"Saved model under gs://{BUCKET_NAME}/models/{MODEL_NAME}/{MODEL_VERSION}")
+
+def evaluate(model, X_test, y_test):
+    model.evaluate(X_test, y_test)
 
 if __name__ == '__main__':
     # starting time
@@ -147,6 +156,14 @@ if __name__ == '__main__':
     print(f'The length of X_train is {len(X_train)}')
     print(f'The length of X_test is {len(X_test)}')
 
+    print('Evaluating the model')
+    res = model.evaluate(X_test, y_test)
+    print(res)
+
+
     #'Saving Model'
     save_model(model)
+
+    # Save Word to Dict
+    # save_word_dict()
 
