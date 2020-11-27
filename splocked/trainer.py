@@ -11,7 +11,6 @@ from sklearn import linear_model
 import numpy as np
 import joblib
 import time
-from google.cloud import storage
 from tensorflow.keras.callbacks import EarlyStopping
 
 
@@ -137,7 +136,7 @@ if __name__ == '__main__':
     print(f'The length of X_train is {len(X_train)}')
     print(f'The length of X_test is {len(X_test)}')
 
-    'Saving Model'
-    save_model(model)
+    #'Saving Model'
+    #save_model(model)
 
 
