@@ -1,7 +1,6 @@
 pip>=9
 setuptools>=26
 wheel>=0.29
-pandas
 pytest
 coverage
 flake8
@@ -9,4 +8,10 @@ black
 yapf
 python-gitlab
 twine
+<<<<<<< HEAD
 streamlit
+=======
+six==1.15.0
+pandas==1.1.4
+
+>>>>>>> master
