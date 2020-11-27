@@ -2,7 +2,6 @@ import pandas as pd
 from splocked.utils import *
 from  splocked.model  import *
 from sklearn.model_selection import train_test_split
-from sklearn.externals import joblib
 import datetime
 import os
 from google.cloud import storage
@@ -34,6 +33,7 @@ CLOUD_PROJECT = 'splocked'
 # /!\ here you need to decide if you are going to train using the provided and uploaded data/train_1k.csv sample file
 # or if you want to use the full dataset (you need need to upload it first of course)
 BUCKET_TRAIN_DATA_PATH = 'data/IMDB_reviews.json'
+BUCKET_SAMPLE_DATA_PATH = 'data/small_df.json'
 
 ##### Training  - - - - - - - - - - - - - - - - - - - - - -
 
@@ -57,7 +57,20 @@ MODEL_VERSION = 'v1'
 def get_data(nrows=None):
     """method used in order to get the training data (or a portion of it) from google cloud bucket"""
     client = storage.Client()
-    df = pd.read_json(f"gs://{BUCKET_NAME}/{BUCKET_TRAIN_DATA_PATH}", lines=True, nrows=nrows)
+    df = pd.read_json(f"gs://{BUCKET_NAME}/{BUCKET_TRAIN_DATA_PATH}", lines=True)
+    if nrows:
+      df = df.loc[:nrows]
+    return df
+
+def get_small_df(nrows=None):
+    '''
+    Loads a small json file that is 100 lines long
+    with 30 spoilers and 40 non spoilers
+    '''
+    client = storage.Client()
+    df = pd.read_json(f"gs://{BUCKET_NAME}/{BUCKET_SAMPLE_DATA_PATH}", lines=True)
+    if nrows:
+      df = df.loc[:nrows]
     return df
 
 def preprocess(df, test_size = 0.3):
@@ -91,7 +104,7 @@ def train_model(X_train, y_train, vocab_size):
 
     model = init_model(vocab_size)
     model.fit(X_train, y_train,
-          epochs=10,
+          epochs=1,
           batch_size=32,
           validation_split=0.3,
           callbacks=[es]
@@ -118,12 +131,19 @@ def save_model(model):
     # blob = client.blob(storage_location)
     # blob.upload_from_filename(local_model_name)
     # print("uploaded model.joblib to gcp cloud storage under \n => {}".format(storage_location))
-    model.save(f"gs://${BUCKET_NAME}/${MODEL_NAME}/${UPLOADED_FILE_NAME}", save_format='tf')
+    print("STARTING TO SAVE MODEL LOCALLY...", end='\n')
+    model.save('models', save_format='tf')
+    print("Saved model under models/saved_model.pb")
+
+    print("STARTING TO SAVE MODEL IN GOOGLE CLOUD...", end='\n')
+    model.save(f"gs://{BUCKET_NAME}/models/{MODEL_NAME}/{MODEL_VERSION}", save_format='tf')
+    print(f"Saved model under gs://${BUCKET_NAME}/${MODEL_NAME}/${UPLOADED_FILE_NAME}")
 
 if __name__ == '__main__':
     # starting time
     start = time.time()
-    df = get_data(nrows=1_000)
+    #df = get_data(nrows=1_000)
+    df = get_small_df()
     end = time.time()
     print(f'Runtime to get data from cloud: {end-start}')
 
@@ -137,5 +157,5 @@ if __name__ == '__main__':
     print(f'The length of X_test is {len(X_test)}')
 
     #'Saving Model'
-    #save_model(model)
+    save_model(model)
 

@@ -1,5 +1,6 @@
 ##### Data  - - - - - - - - - - - - - - - - - - - - - - - -
 LOCAL_PATH=raw_data/IMDB_reviews.json
+LOCAL_SAMPLE_PATH = raw_data/small_df.json
 BUCKET_FOLDER=data
 
 ### GCP Storage - - - - - - - - - - - - - - - - - - - - - -
@@ -19,7 +20,23 @@ BUCKET_TRAINING_FOLDER = 'trainings'
 # BUCKET_FILE_NAME=another_file_name_if_I_so_desire.csv
 BUCKET_FILE_NAME=$(shell basename ${LOCAL_PATH})
 
+##### Machine configuration - - - - - - - - - - - - - - - -
+
 REGION=europe-west1
+
+PYTHON_VERSION=3.7
+FRAMEWORK=scikit-learn
+RUNTIME_VERSION=2.2
+
+##### Package params  - - - - - - - - - - - - - - - - - - -
+
+PACKAGE_NAME=splocked
+FILENAME=trainer
+
+##### Job - - - - - - - - - - - - - - - - - - - - - - - - -
+
+JOB_NAME=splocked_training_pipeline_$(shell date +'%Y%m%d_%H%M%S')
+
 
 set_project:
 	-@gcloud config set project ${PROJECT_ID}
@@ -30,6 +47,9 @@ create_bucket:
 upload_data:
 	# -@gsutil cp train_1k.csv gs://wagon-ml-my-bucket-name/data/train_1k.csv
 	-@gsutil cp ${LOCAL_PATH} gs://${BUCKET_NAME}/${BUCKET_FOLDER}/${UPLOADED_FILE_NAME}
+
+upload_sample_data:
+	-@gsutil cp ${LOCAL_SAMPLE_PATH} gs://${BUCKET_NAME}/${BUCKET_FOLDER}/${UPLOADED_FILE_NAME}
 
 run_locally:
 	@python -m ${PACKAGE_NAME}.${FILENAME}
