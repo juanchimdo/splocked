@@ -9,6 +9,16 @@ from bs4 import BeautifulSoup as bsp
 
 #'https://s3-us-west-2.amazonaws.com/flx-editorial-wordpress/wp-content/uploads/2018/03/13153742/RT_300EssentialMovies_700X250.jpg'
 
+def get_reviews(url):
+    response = requests.get(url)
+    soup = bsp(response.content, "html.parser")
+    reviews = []
+    for comment in soup.find_all("div", class_="lister-item-content"):
+        titles = comment.find("a", class_="title").string.rstrip('\n').strip(' ')
+        comments = comment.find_all("div", class_='text')
+        for cmt in comments:
+            reviews.append({'title':titles, 'comment': cmt.text})
+    return pd.DataFrame(reviews)
 
 # General Styling for Webpage
 CSS = """
@@ -63,6 +73,9 @@ def main():
 
   url = st.text_input("Type the IMDB movie review URL here: ",\
    "https://www.imdb.com/title/tt8134470/reviews?ref_=tt_urv")
+  df = get_reviews(url)
+  st.write(df)
+
 
 if __name__ == "__main__":
     #df = read_data()
