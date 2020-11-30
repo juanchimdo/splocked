@@ -5,20 +5,17 @@ import pandas as pd
 import numpy as np
 import requests
 from bs4 import BeautifulSoup as bsp
-
+from splocked.predict import preprocess_review
+from splocked.utils import get_reviews
 
 #'https://s3-us-west-2.amazonaws.com/flx-editorial-wordpress/wp-content/uploads/2018/03/13153742/RT_300EssentialMovies_700X250.jpg'
 
-def get_reviews(url):
-    response = requests.get(url)
-    soup = bsp(response.content, "html.parser")
-    reviews = []
-    for comment in soup.find_all("div", class_="lister-item-content"):
-        titles = comment.find("a", class_="title").string.rstrip('\n').strip(' ')
-        comments = comment.find_all("div", class_='text')
-        for cmt in comments:
-            reviews.append({'title':titles, 'comment': cmt.text})
-    return pd.DataFrame(reviews)
+
+# def predict(df, model, word_to_id)
+#     '''
+
+#     '''
+
 
 # General Styling for Webpage
 CSS = """
