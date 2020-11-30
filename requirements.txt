@@ -12,4 +12,8 @@ streamlit
 six==1.15.0
 pandas==1.1.4
 beautifulsoup4
+numpy == 1.19.0
 tensorflow
+nltk
+scikit-learn
+google-cloud
