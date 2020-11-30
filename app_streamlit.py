@@ -6,26 +6,23 @@ import pandas as pd
 
 #'https://s3-us-west-2.amazonaws.com/flx-editorial-wordpress/wp-content/uploads/2018/03/13153742/RT_300EssentialMovies_700X250.jpg'
 
-st.markdown("""
-<style>
+
+
+CSS = """
+
 body {
-    color: #fff;
-    background-color: #F8F8FF;
+	background-size: cover;
+    color: #783252;
+    background-color: #EDE9E4;
 }
+    """
 
-</style>
-    """, unsafe_allow_html=True)
-
+st.write(f'<style>{CSS}</style>', unsafe_allow_html=True)
 
 st.markdown("# **SPLOCKED !**")
 st.markdown("### *Check if your friend's comment contain spoiler!\
  Or, supply an URL and find out if the comments contain any spoilers!*")
 
-'''
-def format_input(text):
-	formated = {'review':text}
-	return pd.DataFrame(formated)
-'''
 
 def main():
 
@@ -38,15 +35,13 @@ def main():
 
 	choice = st.radio('Are you sure you would like to know?', ('Yes', 'No'))
 	if choice == 'Yes':
-		'''
-		X = format_input(text)
 		pred = model.predict(X)
 		if pred[1] > 0.5:
-		'''
-		st.write("SPOILER ALLERT!!!!")
-		#else:
+			st.write("SPOILER ALLERT!!!!")
+		else:
+			st.write("Nhá, you can read it!")
 	else:
-		st.write("nhá, you can read it!")
+		st.write("Why are you here then?!")
 
 if __name__ == "__main__":
     #df = read_data()
