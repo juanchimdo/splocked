@@ -11,7 +11,7 @@ import pandas as pd
 CSS = """
 
 body {
-	background-size: cover;
+  background-size: cover;
     color: #783252;
     background-color: #EDE9E4;
 }
@@ -26,22 +26,22 @@ st.markdown("### *Check if your friend's comment contain spoiler!\
 
 def main():
 
-	#model = load_model('\models\saved_model.pb')
-	text = st.text_input("Type the comment here: ", "OMG, I can't believe McDreamy died!")
-	
-	url = st.text_input("Or...type the URL here: ",\
-	 "https://www.imdb.com/title/tt8134470/reviews?ref_=tt_urv")
+  #model = load_model('\models\saved_model.pb')
+  text = st.text_input("Type the comment here: ", "OMG, I can't believe McDreamy died!")
+
+  url = st.text_input("Or...type the URL here: ",\
+   "https://www.imdb.com/title/tt8134470/reviews?ref_=tt_urv")
 
 
-	choice = st.radio('Are you sure you would like to know?', ('Yes', 'No'))
-	if choice == 'Yes':
-		pred = model.predict(X)
-		if pred[1] > 0.5:
-			st.write("SPOILER ALLERT!!!!")
-		else:
-			st.write("Nhá, you can read it!")
-	else:
-		st.write("Why are you here then?!")
+  choice = st.radio('Are you sure you would like to know?', ('Yes', 'No'))
+  if choice == 'Yes':
+    pred = model.predict(X)
+    if pred[1] > 0.5:
+      st.write("SPOILER ALLERT!!!!")
+    else:
+      st.write("Nhá, you can read it!")
+  else:
+    st.write("Why are you here then?!")
 
 if __name__ == "__main__":
     #df = read_data()
