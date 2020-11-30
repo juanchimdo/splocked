@@ -3,18 +3,26 @@ import os
 from tensorflow.keras.models import load_model
 import pandas as pd
 import numpy as np
+import json
 import requests
 from bs4 import BeautifulSoup as bsp
 from splocked.predict import preprocess_review
 from splocked.utils import get_reviews
 
-#'https://s3-us-west-2.amazonaws.com/flx-editorial-wordpress/wp-content/uploads/2018/03/13153742/RT_300EssentialMovies_700X250.jpg'
 
+def predict(df, model, word_to_id):
+  """
+  predicts the probability of being a spoiler and
+  returns a new df column with the results per comment
+  """
 
-# def predict(df, model, word_to_id)
-#     '''
+  preprocessed_reviews = [preprocess_review(review, word_to_id)\
+  for review in df['title'] + ' ' + df['comment']]
 
-#     '''
+  df['spoiler_proba'] = [model.predict(review)[0][0]*100\
+  for review in preprocessed_reviews]
+
+  return df['spoiler_proba']
 
 
 # General Styling for Webpage
@@ -63,16 +71,21 @@ st.write(f'<style>{CSS}</style>', unsafe_allow_html=True)
 
 st.markdown("### *Check your movie's reviews without spoilers!*")
 
-
 def main():
 
-  #model = load_model('\models\saved_model.pb')
+  model = load_model(os.path.join('model_baseline'))
+
+  with open('word_to_id.json') as json_file:
+      word_dict = json.load(json_file)
 
   url = st.text_input("Type the IMDB movie review URL here: ",\
    "https://www.imdb.com/title/tt8134470/reviews?ref_=tt_urv")
-  df = get_reviews(url)
-  st.write(df)
 
+  df = get_reviews(url)
+
+  df['spoiler_proba'] = predict(df, model, word_dict)
+
+  st.write(df)
 
 if __name__ == "__main__":
     #df = read_data()
