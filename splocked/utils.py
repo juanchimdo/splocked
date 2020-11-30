@@ -1,6 +1,8 @@
 import numpy as np
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-
+import pandas as pd
+import requests
+from bs4 import BeautifulSoup as bsp
 
 def convert_sentences(X):
     '''
@@ -42,6 +44,16 @@ def boolean_to_binary_array(list):
     '''
     return np.array([1 if x else 0 for x in list])
 
+def get_reviews(url):
+    response = requests.get(url)
+    soup = bsp(response.content, "html.parser")
+    reviews = []
+    for comment in soup.find_all("div", class_="lister-item-content"):
+        titles = comment.find("a", class_="title").string.rstrip('\n').strip(' ')
+        comments = comment.find_all("div", class_='text')
+        for cmt in comments:
+            reviews.append({'title':titles, 'comment': cmt.text})
+    return pd.DataFrame(reviews)
 
 if __name__ == "__main__":
     # A random review to convert
