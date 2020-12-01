@@ -7,7 +7,7 @@ import json
 import requests
 from bs4 import BeautifulSoup as bsp
 from splocked.predict import preprocess_review
-from splocked.utils import get_reviews
+from splocked.utils import get_reviews, imdb_api
 
 
 def predict(df, model, word_to_id):
@@ -78,14 +78,29 @@ def main():
   with open('word_to_id.json') as json_file:
       word_dict = json.load(json_file)
 
-  url = st.text_input("Type the IMDB movie review URL here: ",\
-   "https://www.imdb.com/title/tt8134470/reviews?ref_=tt_urv")
+  movie_title = st.text_input("Type the IMDB movie title here: ",\
+   "Movie title HERE!")
 
-  df = get_reviews(url)
+  st.write('OR...')
 
-  df['spoiler_proba'] = predict(df, model, word_dict)
+  movie_url = st.text_input("Type the IMDB movie url here: ",\
+   "https://www.imdb.com/title/tt1411697/reviews?ref_=tt_urv")
 
-  st.write(df)
+  if movie_title != "Movie title HERE!":
+    try:  
+      imdbID = imdb_api(movie_title)
+      url = f'https://www.imdb.com/title/{imdbID}/reviews?ref_=tt_urv'
+      df = get_reviews(url)
+      df['spoiler_proba'] = predict(df, model, word_dict)
+      st.write(df)
+
+    except:
+      st.write('Wrong name! Or, try another movie!')
+
+  else:
+    df = get_reviews(movie_url)
+    df['spoiler_proba'] = predict(df, model, word_dict)
+    st.write(df)
 
 if __name__ == "__main__":
     #df = read_data()
