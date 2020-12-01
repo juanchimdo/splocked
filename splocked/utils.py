@@ -44,7 +44,20 @@ def boolean_to_binary_array(list):
     '''
     return np.array([1 if x else 0 for x in list])
 
+def imdb_api(movie_title):
+    '''
+    This function returns the movie's imdb ID
+    '''
+    title = movie_title.strip(' ').replace(' ', '+').title()
+    api_key = 'ca58a32b'
+    api_url = 'http://www.omdbapi.com/'
+    params = {'t':title, 'apikey':api_key}
+    response = requests.get(api_url, params = params).json()
+    imdbID = response['imdbID']
+    return imdbID
+
 def get_reviews(url):
+
     response = requests.get(url)
     soup = bsp(response.content, "html.parser")
     reviews = []

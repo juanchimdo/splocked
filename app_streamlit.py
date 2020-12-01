@@ -7,7 +7,7 @@ import json
 import requests
 from bs4 import BeautifulSoup as bsp
 from splocked.predict import preprocess_review
-from splocked.utils import get_reviews
+from splocked.utils import get_reviews, imdb_api
 
 
 def predict(df, model, word_to_id):
@@ -132,7 +132,7 @@ details details summary {
 }
 """
 
-REVIEW_CARD = """\
+REVIEW_CARD = """
 <div class='relative'>
   <details>
     <summary>
@@ -155,7 +155,7 @@ REVIEW_CARD = """\
 </div>
 """
 
-#st.write(REVIEW_CARD, unsafe_allow_html=True)
+
 #st.write(REVIEW_CARD, unsafe_allow_html=True)
 
 def main():
@@ -165,25 +165,26 @@ def main():
   with open('word_to_id.json') as json_file:
       word_dict = json.load(json_file)
 
-  url = st.text_input("Type the IMDB movie review URL here: ",\
-   "https://www.imdb.com/title/tt8134470/reviews?ref_=tt_urv")
+  movie_title = st.text_input("Type the IMDB movie title here: ",\
+   "Movie title here")
 
-  df = get_reviews(url)
+  if movie_title != 'Movie title here':
+      try:
+          imdbID = imdb_api(movie_title)
+          url = f'https://www.imdb.com/title/{imdbID}/reviews?ref_=tt_urv'
+          df = get_reviews(url)
+          df['spoiler_proba'] = predict(df, model, word_dict)
+          reviews = ''.join([REVIEW_CARD.format(title=row['title'], comment=row['comment'], spoiler_proba=round(row['spoiler_proba'], 2), color="green" if row['spoiler_proba'] < 50 else "red") for index, row in df.iterrows()])
+          REVIEW_HTML = f"""
+          <style>
+            {REVIEW_CSS}
+          </style>
+          {reviews}
+          """
+          st.write(REVIEW_HTML, unsafe_allow_html=True)
+      except:
+          st.write("Try another movie title")
 
-  df['spoiler_proba'] = predict(df, model, word_dict)
-
-  reviews = ''.join([REVIEW_CARD.format(title=row['title'], comment=row['comment'], spoiler_proba=round(row['spoiler_proba'], 2), color="green" if row['spoiler_proba'] < 50 else "red") for index, row in df.iterrows()])
-
-  REVIEW_HTML = f"""
-  <style>
-    {REVIEW_CSS}
-  </style>
-  <div>
-    {reviews}
-  <div>
-  """
-
-  st.write(REVIEW_HTML, unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
