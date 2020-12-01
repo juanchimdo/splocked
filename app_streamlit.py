@@ -113,6 +113,11 @@ details details summary {
   border: 5px solid #78B779;
 }
 
+.red {
+  background-color: #FFA7A7;
+  border: 5px solid #FF7272;
+}
+
 .relative {
   position: relative;
   z-index: 10
@@ -127,18 +132,15 @@ details details summary {
 }
 """
 
-REVIEW_CARD = f"""
-<style>
-{REVIEW_CSS}
-</style>
+REVIEW_CARD = """\
 <div class='relative'>
   <details>
     <summary>
-      <div class='title green'>
+      <div class='title {color}'>
           <div>
             <div>
-              <div><em>Spoiler Proba<em></div>
-              <div>Comment Summary</div>
+              <div><em>{spoiler_proba}%<em></div>
+              <div>{title}</div>
             </div>
           </div>
           <div class="bottom mr-5 ">
@@ -147,23 +149,14 @@ REVIEW_CARD = f"""
       </div>
     </summary>
     <p>
-      Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-      Sed non eleifend libero. Nullam quis dolor vel
-      lorem auctor imperdiet eu pulvinar erat.
-      Vestibulum venenatis nisl non felis sollicitudin aliquam.
-      Praesent aliquam maximus sem, et vestibulum orci pulvinar eget.
-      ras consectetur faucibus justo, vitae vulputate neque. Aenean
-      eu metus arcu. Proin porta mi mi, sit amet bibendum augue finibus
-      sit amet. Pellentesque vestibulum dolor nec mollis bibendum.
-      In quis quam euismod quam condimentum elementum.
+      {comment}
     </p>
   </details>
 </div>
 """
 
-
 #st.write(REVIEW_CARD, unsafe_allow_html=True)
-st.write(REVIEW_CARD, unsafe_allow_html=True)
+#st.write(REVIEW_CARD, unsafe_allow_html=True)
 
 def main():
 
@@ -179,8 +172,18 @@ def main():
 
   df['spoiler_proba'] = predict(df, model, word_dict)
 
-  st.write(df)
+  reviews = ''.join([REVIEW_CARD.format(title=row['title'], comment=row['comment'], spoiler_proba=round(row['spoiler_proba'], 2), color="green" if row['spoiler_proba'] < 50 else "red") for index, row in df.iterrows()])
+
+  REVIEW_HTML = f"""
+  <style>
+    {REVIEW_CSS}
+  </style>
+  <div>
+    {reviews}
+  <div>
+  """
+
+  st.write(REVIEW_HTML, unsafe_allow_html=True)
 
 if __name__ == "__main__":
-    #df = read_data()
     main()
