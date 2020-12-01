@@ -5,8 +5,8 @@ import time
 import datetime
 import os
 
-from sklearn import linear_model
-from sklearn.model_selection import train_test_split
+#from sklearn import linear_model
+#from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import EarlyStopping
 
 from google.cloud import storage
