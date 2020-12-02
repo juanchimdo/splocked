@@ -1,6 +1,7 @@
 ##### Data  - - - - - - - - - - - - - - - - - - - - - - - -
 LOCAL_PATH=raw_data/IMDB_reviews.json
 LOCAL_SAMPLE_PATH = raw_data/small_df.json
+LOCAL_CLEANED_PATH = raw_data/data_cleaned.csv
 BUCKET_FOLDER=data
 
 ### GCP Storage - - - - - - - - - - - - - - - - - - - - - -
@@ -50,6 +51,10 @@ upload_data:
 
 upload_sample_data:
 	-@gsutil cp ${LOCAL_SAMPLE_PATH} gs://${BUCKET_NAME}/${BUCKET_FOLDER}/${UPLOADED_FILE_NAME}
+
+upload_cleaned_data:
+	-@gsutil cp ${LOCAL_CLEANED_PATH} gs://${BUCKET_NAME}/${BUCKET_FOLDER}/${UPLOADED_FILE_NAME}
+
 
 run_locally:
 	@python -m ${PACKAGE_NAME}.${FILENAME}

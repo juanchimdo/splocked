@@ -13,5 +13,6 @@ six==1.15.0
 pandas==1.1.4
 beautifulsoup4
 numpy == 1.18.5
-tensorflow-cpu
+tensorflow==2.0.0.a0
 nltk
+tensorflow_addons
