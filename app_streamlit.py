@@ -30,8 +30,14 @@ CSS = """
 
 body {
   background-size: cover;
-    color: #783252;
-    background-color: #EDE9E4;
+  color: #783252;
+  background-color: rgb(0,0,0);
+}
+.block-container {
+  background-color: #EDE9E4;
+  margin: 10px 0px;
+  padding: 1rem 1rem 1rem !important;
+  border-radius: 5px;
 }
     """
 
@@ -103,19 +109,31 @@ details details summary {
   z-index: 1;
   display: flex;
   justify-content: space-between;
-  padding: 5px;
+  padding: 16px 80px;
   border-radius: 5px;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  background-color: #fff;
+}
+
+.title:hover{
+    margin-top: -10px;
+    box-shadow: 0 4px 2px -2px rgba(0,0,0,0.8);
 }
 
 .green {
-  background-color: #99EA9A;
-  border: 5px solid #78B779;
+  box-shadow: 0 4px 2px -2px rgba(20,200,50,0.5);
+  -webkit-transition: margin 0.2s ease-out;
+  -moz-transition: margin 0.2s ease-out;
+  -o-transition: margin 0.2s ease-out;
+  transition: margin 0.2s ease-out;
 }
 
 .red {
-  background-color: #FFA7A7;
-  border: 5px solid #FF7272;
+  box-shadow: 0 4px 2px -2px rgba(255,0,50,0.5);
+  -webkit-transition: margin 0.2s ease-out;
+  -moz-transition: margin 0.2s ease-out;
+  -o-transition: margin 0.2s ease-out;
+  transition: margin 0.2s ease-out;
 }
 
 .relative {
@@ -130,6 +148,37 @@ details details summary {
 .no-margin {
   margin: 0px 0px 0px 0px;
 }
+.bar {
+  position: absolute;
+  top: 25px;
+  left: 140px;
+  height: 5px;
+  width: 150px;
+  z-index: 1000;
+}
+
+.emptybar {
+  background-color: #2e3033;
+  width: 100%;
+  height: 100%;
+  z-index:1001;
+}
+
+.filledbar {
+  position: absolute;
+  top: 0px;
+  z-index: 1001;
+  width: 0px;
+  height: 100%;
+  background: rgb(0,154,217);
+  background: linear-gradient(90deg, rgba(0,154,217,1) 0%, rgba(217,147,0,1) 65%, rgba(255,186,0,1) 100%);
+  transition: 0.6s ease-out;
+}
+
+.relative:hover .filledbar {
+  width: 120px;
+  transition: 0.4s ease-out;
+}
 """
 
 REVIEW_CARD = """
@@ -139,6 +188,10 @@ REVIEW_CARD = """
       <div class='title {color}'>
           <div>
             <div>
+              <div class="bar">
+                <div class="emptybar"></div>
+                <div class="filledbar"></div>
+              </div>
               <div><em>{spoiler_proba}%<em></div>
               <div>{title}</div>
             </div>
@@ -155,8 +208,7 @@ REVIEW_CARD = """
 </div>
 """
 
-
-#st.write(REVIEW_CARD, unsafe_allow_html=True)
+#st.write(NICE_CARD, unsafe_allow_html=True)
 
 def main():
 

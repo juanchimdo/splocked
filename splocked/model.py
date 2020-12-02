@@ -1,10 +1,10 @@
 from tensorflow.keras import Sequential
 from tensorflow.keras import layers
 from tensorflow.keras.metrics import Recall
-from tensorflow_addons.metrics import F1Score
+#from tensorflow_addons.metrics import F1Score
 
 recall = Recall(name='recall')
-f1 = F1Score(name='f1_score', num_classes=1)
+#f1 = F1Score(name='f1_score', num_classes=1)
 
 def init_model(vocab_size):
     model = Sequential()
@@ -16,6 +16,6 @@ def init_model(vocab_size):
     #model.add(layers.Dense(64, activation='relu'))
     model.add(layers.Dense(1, activation='sigmoid'))
 
-    model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=[f1, recall])
+    model.compile(loss='binary_crossentropy', optimizer='rmsprop', metrics=recall)
 
     return model

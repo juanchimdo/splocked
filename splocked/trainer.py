@@ -39,7 +39,7 @@ CLOUD_PROJECT = 'splocked'
 BUCKET_TRAIN_DATA_PATH = 'data/IMDB_reviews.json'
 BUCKET_SAMPLE_DATA_PATH = 'data/small_df.json'
 BUCKET_CLEANED_DATA_PATH = 'data/data_cleaned.csv'
-LOCAL_FOLDER_NAME = 'test_gru_model'
+LOCAL_FOLDER_NAME = 'google_cloud_model'
 
 ##### Training  - - - - - - - - - - - - - - - - - - - - - -
 
@@ -48,7 +48,7 @@ LOCAL_FOLDER_NAME = 'test_gru_model'
 ##### Model - - - - - - - - - - - - - - - - - - - - - - - -
 
 # model folder name (will contain the folders for all trained model versions)
-MODEL_NAME = 'splocked_models'
+MODEL_NAME = 'google_cloud_model'
 
 # model version folder name (where the trained model.joblib file will be stored)
 MODEL_VERSION = 'v1'
@@ -149,8 +149,8 @@ if __name__ == '__main__':
     # starting time
     start = time.time()
     # Get the data that is already cleaned
-    #data = pd.read_csv(f"gs://{BUCKET_NAME}/{BUCKET_CLEANED_DATA_PATH}")
-    data = pd.read_csv('raw_data/data_cleaned.csv')
+    data = pd.read_csv(f"gs://{BUCKET_NAME}/{BUCKET_CLEANED_DATA_PATH}")
+    #data = pd.read_csv('raw_data/data_cleaned.csv')
     # Shuffle the data
     df_shuffle = data.sample(frac=1).copy()
     df_shuffle.reset_index(inplace =True)
@@ -162,7 +162,7 @@ if __name__ == '__main__':
     # Split the data into train and test
     print('Splitting into balanced and unbalanced datasets')
 
-    df_shuffle_test = df_shuffle.loc[:100]
+    df_shuffle_test = df_shuffle.loc[:200_000]
     df_shuffle_train = df_shuffle.loc[200_000:]
 
     # Balance the training samples
@@ -174,9 +174,12 @@ if __name__ == '__main__':
     df_shuffle_train = g
 
     # Get 100,000 samples
-    n = 100
-    print(f'Selecting only the first {n} samples')
-    df_sample_train = df_shuffle_train.sample(n=n)
+    # n = 100
+    # print(f'Selecting only the first {n} samples')
+    # df_sample_train = df_shuffle_train.sample(n=n)
+
+    print("Selecting ALL the samples")
+    df_sample_train = df_shuffle_train
 
     # Define  X and y
     print("Processing the data")
@@ -205,23 +208,25 @@ if __name__ == '__main__':
     X_token_test = tokenize(X_test['clean_reviews'], word_to_id)
 
     # Add padding
-    X_train_maxlen = pad_sequences(X_token_train, maxlen=100, dtype='float32', padding='post')
-    X_test_maxlen = pad_sequences(X_token_test, maxlen=100, dtype='float32', padding='post')
+    X_train_maxlen = pad_sequences(X_token_train, maxlen=250, dtype='float32', padding='post')
+    X_test_maxlen = pad_sequences(X_token_test, maxlen=250, dtype='float32', padding='post')
     print("Finished processing the data")
 
     # Train model
     print("Train the model")
     model = init_model(len(word_to_id))
-    es = EarlyStopping(patience=1, restore_best_weights=True, monitor='val_f1_score')
-    model.fit(X_train_maxlen, y_train, epochs=10, batch_size=32, validation_split=0.2, callbacks=[es])
+    es = EarlyStopping(patience=7, restore_best_weights=True)
+    history = model.fit(X_train_maxlen, y_train, epochs=25, batch_size=16, validation_split=0.2, callbacks=[es])
+
+    with open(f"{LOCAL_FOLDER_NAME}/history.json", "w") as hist:
+      json.dump(history.history, hist)
 
     # Evaluate model of the train/test split
     print("Starting to evaluate model on balanced data")
     res_bal = model.evaluate(X_test_maxlen, y_test)
     print(" RESULTS FOR BALANCED DATA")
     print(f'Loss:{res_bal[0]}')
-    print(f'f1:{res_bal[1]}')
-    print(f'recall:{res_bal[2]}')
+    print(f'Recall:{res_bal[1]}')
 
     # Evalute model on the true balanced data
     X_shuffle_test = df_shuffle_test[['clean_reviews']]
@@ -229,14 +234,13 @@ if __name__ == '__main__':
 
     X_shuffle_test_converted = X_shuffle_test.apply(convert_sentences)
     X_shuffle_test_tokenized = tokenize(X_shuffle_test_converted['clean_reviews'], word_to_id)
-    X_shuffle_test_maxlen = pad_sequences(X_shuffle_test_tokenized, maxlen=100, dtype='float32', padding='post')
+    X_shuffle_test_maxlen = pad_sequences(X_shuffle_test_tokenized, maxlen=250, dtype='float32', padding='post')
 
     print("Starting to evaluate model on tru balance data")
     res_true = model.evaluate(X_shuffle_test_maxlen, y_shuffle_test)
     print(" RESULTS FOR TRUE BALANCE DATA")
     print(f'Loss:{res_bal[0]}')
-    print(f'f1:{res_bal[1]}')
-    print(f'recall:{res_bal[2]}')
+    print(f'Recall:{res_bal[1]}')
 
     #'Saving Model'
     print("Saving model")
@@ -246,5 +250,3 @@ if __name__ == '__main__':
     print("Saving word_to_id")
     with open(f"{LOCAL_FOLDER_NAME}/word_to_id.json", 'w') as fp:
         json.dump(word_to_id, fp)
-
-
