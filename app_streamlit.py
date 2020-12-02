@@ -160,9 +160,9 @@ REVIEW_CARD = """
 
 def main():
 
-  model = load_model(os.path.join('model_baseline'))
+  model = load_model(os.path.join('gru_model'))
 
-  with open('word_to_id.json') as json_file:
+  with open('gru_word_to_id.json') as json_file:
       word_dict = json.load(json_file)
 
   movie_title = st.text_input("Type the IMDB movie title here: ",\
