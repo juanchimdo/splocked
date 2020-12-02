@@ -1,2 +1,4 @@
 /notebooks/
 /models/
+/model_baseline/
+word_to_id.json
