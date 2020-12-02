@@ -71,6 +71,93 @@ st.write(f'<style>{CSS}</style>', unsafe_allow_html=True)
 
 st.markdown("### *Check your movie's reviews without spoilers!*")
 
+
+REVIEW_CSS = """
+summary::-webkit-details-marker {
+ color: #00ACF3;
+ font-size: 100%;
+ margin-right: 2px;
+ position: absolute;
+ top: 50px;
+ right: 5px;
+ z-index: 100;
+}
+summary:focus {
+  outline-style: none;
+}
+article > details > summary {
+  font-size: 28px;
+  margin-top: 16px;
+}
+details > p {
+  margin-left: 24px;
+}
+details details {
+  margin-left: 36px;
+}
+details details summary {
+  font-size: 16px;
+}
+.title {
+  color: black;
+  z-index: 1;
+  display: flex;
+  justify-content: space-between;
+  padding: 5px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+}
+
+.green {
+  background-color: #99EA9A;
+  border: 5px solid #78B779;
+}
+
+.red {
+  background-color: #FFA7A7;
+  border: 5px solid #FF7272;
+}
+
+.relative {
+  position: relative;
+  z-index: 10
+}
+.bottom {
+  position: absolute;
+  top: 40px;
+  right: 25px;
+}
+.no-margin {
+  margin: 0px 0px 0px 0px;
+}
+"""
+
+REVIEW_CARD = """
+<div class='relative'>
+  <details>
+    <summary>
+      <div class='title {color}'>
+          <div>
+            <div>
+              <div><em>{spoiler_proba}%<em></div>
+              <div>{title}</div>
+            </div>
+          </div>
+          <div class="bottom mr-5 ">
+            <p>read full review</p>
+          </div>
+      </div>
+    </summary>
+    <p>
+      {comment}
+    </p>
+  </details>
+</div>
+"""
+
+
+#st.write(REVIEW_CARD, unsafe_allow_html=True)
+
 def main():
 
   model = load_model(os.path.join('model_baseline'))
@@ -79,29 +166,25 @@ def main():
       word_dict = json.load(json_file)
 
   movie_title = st.text_input("Type the IMDB movie title here: ",\
-   "Movie title HERE!")
+   "Movie title here")
 
-  st.write('OR...')
+  if movie_title != 'Movie title here':
+      try:
+          imdbID = imdb_api(movie_title)
+          url = f'https://www.imdb.com/title/{imdbID}/reviews?ref_=tt_urv'
+          df = get_reviews(url)
+          df['spoiler_proba'] = predict(df, model, word_dict)
+          reviews = ''.join([REVIEW_CARD.format(title=row['title'], comment=row['comment'], spoiler_proba=round(row['spoiler_proba'], 2), color="green" if row['spoiler_proba'] < 50 else "red") for index, row in df.iterrows()])
+          REVIEW_HTML = f"""
+          <style>
+            {REVIEW_CSS}
+          </style>
+          {reviews}
+          """
+          st.write(REVIEW_HTML, unsafe_allow_html=True)
+      except:
+          st.write("Try another movie title")
 
-  movie_url = st.text_input("Type the IMDB movie url here: ",\
-   "https://www.imdb.com/title/tt1411697/reviews?ref_=tt_urv")
-
-  if movie_title != "Movie title HERE!":
-    try:  
-      imdbID = imdb_api(movie_title)
-      url = f'https://www.imdb.com/title/{imdbID}/reviews?ref_=tt_urv'
-      df = get_reviews(url)
-      df['spoiler_proba'] = predict(df, model, word_dict)
-      st.write(df)
-
-    except:
-      st.write('Wrong name! Or, try another movie!')
-
-  else:
-    df = get_reviews(movie_url)
-    df['spoiler_proba'] = predict(df, model, word_dict)
-    st.write(df)
 
 if __name__ == "__main__":
-    #df = read_data()
     main()
