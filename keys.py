@@ -1,0 +1,1 @@
+AMANDA_API_KEY = 'ca58a32b'

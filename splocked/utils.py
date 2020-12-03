@@ -3,6 +3,8 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 import pandas as pd
 import requests
 from bs4 import BeautifulSoup as bsp
+import math
+import keys
 
 def convert_sentences(X):
     '''
@@ -49,24 +51,70 @@ def imdb_api(movie_title):
     This function returns the movie's imdb ID
     '''
     title = movie_title.strip(' ').replace(' ', '+').title()
-    api_key = 'ca58a32b'
+
+    api_key = keys.AMANADA_API_KEY
+
     api_url = 'http://www.omdbapi.com/'
+
     params = {'t':title, 'apikey':api_key}
+
     response = requests.get(api_url, params = params).json()
+
     imdbID = response['imdbID']
+
     return imdbID
 
-def get_reviews(url):
-
+def get_reviews(imdbID):
+    '''
+    Returns the comments(reviews), title of the comment and
+    the user rating from the imdb website.
+    '''
+    url = f'https://www.imdb.com/title/{imdbID}/reviews?ref_=tt_urv'
     response = requests.get(url)
     soup = bsp(response.content, "html.parser")
     reviews = []
+
     for comment in soup.find_all("div", class_="lister-item-content"):
         titles = comment.find("a", class_="title").string.rstrip('\n').strip(' ')
         comments = comment.find_all("div", class_='text')
-        for cmt in comments:
-            reviews.append({'title':titles, 'comment': cmt.text})
+        rating = comment.find_all('span', class_='rating-other-user-rating')
+
+        if not rating:
+
+            for cmt in comments:
+                movies.append({'title':titles, 'comment': cmt.text, 'rating':np.nan})
+
+        else:
+
+            for rates in rating:
+                user_rate = rates.find('span').text
+
+                for cmt in comments:
+                    movies.append({'title':titles, 'comment': cmt.text, 'rating':math.ceil(int(user_rate)/2)})
+
     return pd.DataFrame(reviews)
+
+def movie_info(imdbID):
+    '''
+    This function returns the movie poster,
+    summary and original title.
+    '''
+    url = f'https://www.imdb.com/title/{imdbID}'
+    response = requests.get(movie_url)
+    soup = bsp(response.content, "html.parser")
+
+    for img in soup.find("div", class_='poster').find_all('img'):
+        image = img.get('src')
+
+    movie_title = soup.find("div", class_='originalTitle')\
+    .text.rstrip('original title)').rstrip(' (')
+
+    summary_txt = soup.find("div", class_='summary_text')\
+    .text.lstrip('\n').strip().rstrip('\n')
+
+    info = [movie_title, summary_txt, image]
+
+    return info
 
 if __name__ == "__main__":
     # A random review to convert
