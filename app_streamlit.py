@@ -26,67 +26,89 @@ def predict(df, model, word_to_id):
 
 
 # General Styling for Webpage
-CSS = """
+CSS = f"""
 
-body {
+body {{
   background-size: cover;
   color: #783252;
-  background-color: rgb(0,0,0);
-}
-.block-container {
+  background-color: #156153;
+}}
+.block-container {{
   background-color: #EDE9E4;
   margin: 10px 0px;
   padding: 1rem 1rem 1rem !important;
   border-radius: 5px;
-}
+}}
     """
-
-header_img_url = 'https://s3-us-west-2.amazonaws.com/flx-editorial-wordpress/wp-content/uploads/2018/03/13153742/RT_300EssentialMovies_700X250.jpg'
-
-HEADER_CSS = f"""
-#header {{
-    background-image: url('{header_img_url}');
-    width: 100%;
-    height: 200px;
-}}
-.center {{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}}
-#header h1 {{
-  color: white;
-}}
-"""
-
-HEADER_HTML = f"""
-<style>
-    {HEADER_CSS}
-</style>
-
-<div id='header' class='center'>
-    <h1>
-        SPLOCKED!
-    </h1>
-</div>
-"""
-
-st.write(HEADER_HTML, unsafe_allow_html=True)
 
 st.write(f'<style>{CSS}</style>', unsafe_allow_html=True)
 
-st.markdown("### *Check your movie's reviews without spoilers!*")
+SPLOCKED_TITLE = """
+<style>
+  #splocked-title {
+    font-family: 'Alfa Slab One', cursive;
+    -webkit-text-stroke: 1px black;
+    font-size: 100px;
+    color: #E50000;
+    text-align: center;
+    margin: 0px 0px !important;
+    padding: 0px 0px !important;
+  }
+</style>
+<h1 id=splocked-title>SPLOCKED! </h1>
+"""
+st.markdown("<link rel='preconnect' href='https://fonts.gstatic.com'> <link href='https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap' rel='stylesheet'>", unsafe_allow_html=True)
+st.write(SPLOCKED_TITLE, unsafe_allow_html=True)
+
+# header_img_url = 'https://s3-us-west-2.amazonaws.com/flx-editorial-wordpress/wp-content/uploads/2018/03/13153742/RT_300EssentialMovies_700X250.jpg'
+
+# HEADER_CSS = f"""
+# #header {{
+#     background-image: url('{header_img_url}');
+#     width: 100%;
+#     height: 200px;
+# }}
+# .center {{
+#   display: flex;
+#   justify-content: center;
+#   align-items: center;
+# }}
+# #header h1 {{
+#   color: white;
+# }}
+# """
+
+# HEADER_HTML = f"""
+# <style>
+#     {HEADER_CSS}
+# </style>
+
+# <div id='header' class='center'>
+#     <h1>
+#         SPLOCKED!
+#     </h1>
+# </div>
+# """
+
+# st.write(HEADER_HTML, unsafe_allow_html=True)
+
+# st.markdown("### *Check your movie's reviews without spoilers!*")
 
 
 REVIEW_CSS = """
 summary::-webkit-details-marker {
  color: #00ACF3;
- font-size: 100%;
- margin-right: 2px;
+ font-size: 150%;
  position: absolute;
- top: 50px;
- right: 5px;
+ top: 100px;
+ right: 80px;
  z-index: 100;
+ border-radius: 5px;
+}
+.bottom {
+  position: absolute;
+  top: 95px;
+  right: 120px;
 }
 summary:focus {
   outline-style: none;
@@ -113,52 +135,33 @@ details details summary {
   border-radius: 5px;
   margin-bottom: 15px;
   background-color: #fff;
-}
-
-.title:hover{
-    margin-top: -10px;
-    box-shadow: 0 4px 2px -2px rgba(0,0,0,0.8);
+  box-shadow: 0 4px 2px -2px rgba(50,50,50,0.5)
 }
 
 .green {
-  box-shadow: 0 4px 2px -2px rgba(20,200,50,0.5);
-  -webkit-transition: margin 0.2s ease-out;
-  -moz-transition: margin 0.2s ease-out;
-  -o-transition: margin 0.2s ease-out;
-  transition: margin 0.2s ease-out;
 }
 
 .red {
-  box-shadow: 0 4px 2px -2px rgba(255,0,50,0.5);
-  -webkit-transition: margin 0.2s ease-out;
-  -moz-transition: margin 0.2s ease-out;
-  -o-transition: margin 0.2s ease-out;
-  transition: margin 0.2s ease-out;
 }
 
 .relative {
   position: relative;
   z-index: 10
 }
-.bottom {
-  position: absolute;
-  top: 40px;
-  right: 25px;
-}
 .no-margin {
   margin: 0px 0px 0px 0px;
 }
 .bar {
   position: absolute;
-  top: 25px;
-  left: 140px;
+  top: 10px;
+  right: 90px;
   height: 5px;
   width: 150px;
   z-index: 1000;
 }
 
 .emptybar {
-  background-color: #2e3033;
+  background-color: rgba(200,200,200,0.5);
   width: 100%;
   height: 100%;
   z-index:1001;
@@ -168,16 +171,29 @@ details details summary {
   position: absolute;
   top: 0px;
   z-index: 1001;
-  width: 0px;
   height: 100%;
-  background: rgb(0,154,217);
-  background: linear-gradient(90deg, rgba(0,154,217,1) 0%, rgba(217,147,0,1) 65%, rgba(255,186,0,1) 100%);
   transition: 0.6s ease-out;
 }
 
-.relative:hover .filledbar {
-  width: 120px;
-  transition: 0.4s ease-out;
+.text-align-right {
+  width: 100%;
+  text-align: right;
+}
+
+.text-align-left {
+  width: 100;
+  text-align: left;
+}
+
+.border-top {
+  border-top: 1px solid rgb(100,100,100);
+  width: 100%;
+}
+.padding-bottom {
+  padding: 0px 0px 10px 0px;
+}
+.padding-top {
+  padding: 10px 0px 0px 0px;
 }
 """
 
@@ -185,19 +201,24 @@ REVIEW_CARD = """
 <div class='relative'>
   <details>
     <summary>
-      <div class='title {color}'>
-          <div>
-            <div>
-              <div class="bar">
-                <div class="emptybar"></div>
-                <div class="filledbar"></div>
-              </div>
-              <div><em>{spoiler_proba}%<em></div>
-              <div>{title}</div>
-            </div>
+      <div class='title'>
+          <div class='bar'>
+              <div class="emptybar"></div>
+              <div class="filledbar" style="background: {color}; width: {bar_width}px"></div>
           </div>
-          <div class="bottom mr-5 ">
-            <p>read full review</p>
+          <div class='text-align-right'>
+            <div class='padding-bottom'><strong>Spoiler-Meter {spoiler_proba}%<strong></div>
+          <div>
+          <div class='text-align-left'>
+              <div class='padding-bottom'>{title}</div>
+          </div>
+          <div class="border-top padding-top">
+            <div class="text-align-left">
+              <p> {rating} </p>
+            </div>
+            <div class="bottom mr-5">
+              <p>read full review</p>
+            </div>
           </div>
       </div>
     </summary>
@@ -209,6 +230,21 @@ REVIEW_CARD = """
 """
 
 #st.write(NICE_CARD, unsafe_allow_html=True)
+def define_color(number):
+    if number <= 25:
+        return "green"
+    if number <= 50:
+        return "yellow"
+    if number <= 75:
+        return "orange"
+    if number <= 100:
+        return "red"
+
+def process_rating(rating):
+  if np.isnan(rating):
+    return ' '
+  else:
+    return f"{round(rating)}/5"
 
 def main():
 
@@ -217,7 +253,7 @@ def main():
   with open('gru_word_to_id.json') as json_file:
       word_dict = json.load(json_file)
 
-  movie_title = st.text_input("Type the IMDB movie title here: ",\
+  movie_title = st.text_input("",\
    "Movie title here")
 
   if movie_title != 'Movie title here':
@@ -225,7 +261,7 @@ def main():
           imdbID = imdb_api(movie_title)
           df = get_reviews(imdbID)
           df['spoiler_proba'] = predict(df, model, word_dict)
-          reviews = ''.join([REVIEW_CARD.format(title=row['title'], comment=row['comment'], spoiler_proba=round(row['spoiler_proba'], 2), color="green" if row['spoiler_proba'] < 50 else "red") for index, row in df.iterrows()])
+          reviews = ''.join([REVIEW_CARD.format(title=row['title'], comment=row['comment'], spoiler_proba=round(row['spoiler_proba'], 2), color=define_color(row['spoiler_proba']), bar_width=(150*row['spoiler_proba'])/100, rating=process_rating(row['rating'])) for index, row in df.iterrows()])
           REVIEW_HTML = f"""
           <style>
             {REVIEW_CSS}
