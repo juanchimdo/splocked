@@ -9,6 +9,7 @@ import json
 from sklearn import linear_model
 from sklearn.model_selection import train_test_split
 from tensorflow.keras.callbacks import EarlyStopping
+from tensorflow.keras.models import load_model
 
 from google.cloud import storage
 
@@ -213,20 +214,22 @@ if __name__ == '__main__':
     print("Finished processing the data")
 
     # Train model
-    print("Train the model")
-    model = init_model(len(word_to_id))
-    es = EarlyStopping(patience=7, restore_best_weights=True)
-    history = model.fit(X_train_maxlen, y_train, epochs=25, batch_size=16, validation_split=0.2, callbacks=[es])
+    # print("Train the model")
+    # model = init_model(len(word_to_id))
+    # es = EarlyStopping(patience=7, restore_best_weights=True)
+    # history = model.fit(X_train_maxlen, y_train, epochs=25, batch_size=16, validation_split=0.2, callbacks=[es])
 
-    with open(f"{LOCAL_FOLDER_NAME}/history.json", "w") as hist:
-      json.dump(history.history, hist)
+    # Load the already trained model
+    print(f"Getting model from google cloud")
+    model = load_model(f"gs://{BUCKET_NAME}/models/{MODEL_NAME}/{MODEL_VERSION}")
+
 
     # Evaluate model of the train/test split
     print("Starting to evaluate model on balanced data")
-    res_bal = model.evaluate(X_test_maxlen, y_test)
+    loss, acc = model.evaluate(X_test_maxlen, y_test)
     print(" RESULTS FOR BALANCED DATA")
-    print(f'Loss:{res_bal[0]}')
-    print(f'Recall:{res_bal[1]}')
+    print(f'Loss:{loss}')
+    print(f'Recall:{acc}')
 
     # Evalute model on the true balanced data
     X_shuffle_test = df_shuffle_test[['clean_reviews']]
@@ -237,16 +240,20 @@ if __name__ == '__main__':
     X_shuffle_test_maxlen = pad_sequences(X_shuffle_test_tokenized, maxlen=250, dtype='float32', padding='post')
 
     print("Starting to evaluate model on tru balance data")
-    res_true = model.evaluate(X_shuffle_test_maxlen, y_shuffle_test)
+    loss, acc = model.evaluate(X_shuffle_test_maxlen, y_shuffle_test)
     print(" RESULTS FOR TRUE BALANCE DATA")
-    print(f'Loss:{res_bal[0]}')
-    print(f'Recall:{res_bal[1]}')
+    print(f'Loss:{loss}')
+    print(f'Recall:{acc}')
 
     #'Saving Model'
-    print("Saving model")
-    save_model(model)
+    # print("Saving model")
+    # save_model(model)
 
     # Save Word to Dict
-    print("Saving word_to_id")
-    with open(f"{LOCAL_FOLDER_NAME}/word_to_id.json", 'w') as fp:
-        json.dump(word_to_id, fp)
+    # print("Saving word_to_id")
+    # with open(f"{LOCAL_FOLDER_NAME}/word_to_id.json", 'w') as fp:
+    #     json.dump(word_to_id, fp)
+
+    # print("Saving history")
+    # with open(f"{LOCAL_FOLDER_NAME}/history.json", "w") as hist:
+    #   json.dump(history.history, hist)
