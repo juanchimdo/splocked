@@ -4,6 +4,7 @@ import numpy as np
 import time
 import datetime
 import os
+import json
 
 from sklearn import linear_model
 from sklearn.model_selection import train_test_split
@@ -13,6 +14,8 @@ from google.cloud import storage
 
 from splocked.utils import *
 from  splocked.model import *
+
+
 
 ### GCP configuration - - - - - - - - - - - - - - - - - - -
 
@@ -35,6 +38,8 @@ CLOUD_PROJECT = 'splocked'
 # or if you want to use the full dataset (you need need to upload it first of course)
 BUCKET_TRAIN_DATA_PATH = 'data/IMDB_reviews.json'
 BUCKET_SAMPLE_DATA_PATH = 'data/small_df.json'
+BUCKET_CLEANED_DATA_PATH = 'data/data_cleaned.csv'
+LOCAL_FOLDER_NAME = 'google_cloud_model'
 
 ##### Training  - - - - - - - - - - - - - - - - - - - - - -
 
@@ -43,7 +48,7 @@ BUCKET_SAMPLE_DATA_PATH = 'data/small_df.json'
 ##### Model - - - - - - - - - - - - - - - - - - - - - - - -
 
 # model folder name (will contain the folders for all trained model versions)
-MODEL_NAME = 'splocked_models'
+MODEL_NAME = 'google_cloud_model'
 
 # model version folder name (where the trained model.joblib file will be stored)
 MODEL_VERSION = 'v1'
@@ -93,7 +98,8 @@ def preprocess(df, test_size=0.3):
 def word_to_id(X_train):
   pass
 
-def preprocessing(list_of_sentences, word_to_id)
+def preprocessing(list_of_sentences, word_to_id):
+  pass
 
 def train_model(X_train, y_train, vocab_size):
     """method that trains the model"""
@@ -129,8 +135,8 @@ def save_model(model):
     # blob.upload_from_filename(local_model_name)
     # print("uploaded model.joblib to gcp cloud storage under \n => {}".format(storage_location))
     print("STARTING TO SAVE MODEL LOCALLY...", end='\n')
-    model.save('models', save_format='tf')
-    print("Saved model under models/saved_model.pb")
+    model.save(LOCAL_FOLDER_NAME, save_format='tf')
+    print(f"Saved model under {LOCAL_FOLDER_NAME}/saved_model.pb")
 
     print("STARTING TO SAVE MODEL IN GOOGLE CLOUD...", end='\n')
     model.save(f"gs://{BUCKET_NAME}/models/{MODEL_NAME}/{MODEL_VERSION}", save_format='tf')
@@ -142,28 +148,105 @@ def evaluate(model, X_test, y_test):
 if __name__ == '__main__':
     # starting time
     start = time.time()
-    #df = get_data(nrows=1_000)
-    df = get_small_df()
+    # Get the data that is already cleaned
+    data = pd.read_csv(f"gs://{BUCKET_NAME}/{BUCKET_CLEANED_DATA_PATH}")
+    #data = pd.read_csv('raw_data/data_cleaned.csv')
+    # Shuffle the data
+    df_shuffle = data.sample(frac=1).copy()
+    df_shuffle.reset_index(inplace =True)
+    # Drop the index
+    df_shuffle.drop(columns='index', inplace= True)
     end = time.time()
-    print(f'Runtime to get data from cloud: {end-start}')
+    print(f'Runtime to get cleaned and shuffled data: {end-start}')
 
-    X_train, X_test, y_train, y_test, word_to_id = preprocess(df)
-    print('Preprocessing the data')
+    # Split the data into train and test
+    print('Splitting into balanced and unbalanced datasets')
 
-    print('Training the model')
-    model = train_model(X_train, y_train, len(word_to_id))
+    df_shuffle_test = df_shuffle.loc[:200_000]
+    df_shuffle_train = df_shuffle.loc[200_000:]
 
-    print(f'The length of X_train is {len(X_train)}')
-    print(f'The length of X_test is {len(X_test)}')
+    # Balance the training samples
+    print('Balancing the training samples')
+    g = df_shuffle_train.groupby('is_spoiler')
+    g = g.apply(lambda x: x.sample(g.size().min()).reset_index(drop=True))
+    g = g.set_index('is_spoiler')
+    g = g.reset_index()
+    df_shuffle_train = g
 
-    print('Evaluating the model')
-    res = model.evaluate(X_test, y_test)
-    print(res)
+    # Get 100,000 samples
+    # n = 100
+    # print(f'Selecting only the first {n} samples')
+    # df_sample_train = df_shuffle_train.sample(n=n)
 
+    print("Selecting ALL the samples")
+    df_sample_train = df_shuffle_train
+
+    # Define  X and y
+    print("Processing the data")
+    X = df_sample_train[['clean_reviews']]
+    y = df_sample_train['is_spoiler']
+
+    # Split the train sample into train/test again
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=.2)
+
+    # Convert sentences into list of words
+    X_train = X_train.apply(convert_sentences)
+    X_test = X_test.apply(convert_sentences)
+
+    # Make word_to_id_dictionary
+    word_to_id = {}
+    iter_ = 1
+    for sentence in X_train['clean_reviews']:
+        for word in sentence:
+            if word in word_to_id:
+                continue
+            word_to_id[word] = iter_
+            iter_ += 1
+
+    # Tokenize X
+    X_token_train = tokenize(X_train['clean_reviews'], word_to_id)
+    X_token_test = tokenize(X_test['clean_reviews'], word_to_id)
+
+    # Add padding
+    X_train_maxlen = pad_sequences(X_token_train, maxlen=250, dtype='float32', padding='post')
+    X_test_maxlen = pad_sequences(X_token_test, maxlen=250, dtype='float32', padding='post')
+    print("Finished processing the data")
+
+    # Train model
+    print("Train the model")
+    model = init_model(len(word_to_id))
+    es = EarlyStopping(patience=7, restore_best_weights=True)
+    history = model.fit(X_train_maxlen, y_train, epochs=25, batch_size=16, validation_split=0.2, callbacks=[es])
+
+    with open(f"{LOCAL_FOLDER_NAME}/history.json", "w") as hist:
+      json.dump(history.history, hist)
+
+    # Evaluate model of the train/test split
+    print("Starting to evaluate model on balanced data")
+    res_bal = model.evaluate(X_test_maxlen, y_test)
+    print(" RESULTS FOR BALANCED DATA")
+    print(f'Loss:{res_bal[0]}')
+    print(f'Recall:{res_bal[1]}')
+
+    # Evalute model on the true balanced data
+    X_shuffle_test = df_shuffle_test[['clean_reviews']]
+    y_shuffle_test = df_shuffle_test['is_spoiler']
+
+    X_shuffle_test_converted = X_shuffle_test.apply(convert_sentences)
+    X_shuffle_test_tokenized = tokenize(X_shuffle_test_converted['clean_reviews'], word_to_id)
+    X_shuffle_test_maxlen = pad_sequences(X_shuffle_test_tokenized, maxlen=250, dtype='float32', padding='post')
+
+    print("Starting to evaluate model on tru balance data")
+    res_true = model.evaluate(X_shuffle_test_maxlen, y_shuffle_test)
+    print(" RESULTS FOR TRUE BALANCE DATA")
+    print(f'Loss:{res_bal[0]}')
+    print(f'Recall:{res_bal[1]}')
 
     #'Saving Model'
+    print("Saving model")
     save_model(model)
 
     # Save Word to Dict
-    # save_word_dict()
-
+    print("Saving word_to_id")
+    with open(f"{LOCAL_FOLDER_NAME}/word_to_id.json", 'w') as fp:
+        json.dump(word_to_id, fp)
