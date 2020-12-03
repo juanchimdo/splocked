@@ -7,7 +7,7 @@ import json
 import requests
 from bs4 import BeautifulSoup as bsp
 from splocked.predict import preprocess_review
-from splocked.utils import get_reviews, imdb_api
+from splocked.utils import imdb_api, get_reviews
 
 
 def predict(df, model, word_to_id):
@@ -223,8 +223,7 @@ def main():
   if movie_title != 'Movie title here':
       try:
           imdbID = imdb_api(movie_title)
-          url = f'https://www.imdb.com/title/{imdbID}/reviews?ref_=tt_urv'
-          df = get_reviews(url)
+          df = get_reviews(imdbID)
           df['spoiler_proba'] = predict(df, model, word_dict)
           reviews = ''.join([REVIEW_CARD.format(title=row['title'], comment=row['comment'], spoiler_proba=round(row['spoiler_proba'], 2), color="green" if row['spoiler_proba'] < 50 else "red") for index, row in df.iterrows()])
           REVIEW_HTML = f"""
