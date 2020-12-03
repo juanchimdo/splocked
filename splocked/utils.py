@@ -4,7 +4,6 @@ import pandas as pd
 import requests
 from bs4 import BeautifulSoup as bsp
 import math
-import keys
 
 def convert_sentences(X):
     '''
@@ -50,9 +49,10 @@ def imdb_api(movie_title):
     '''
     This function returns the movie's imdb ID
     '''
+
     title = movie_title.strip(' ').replace(' ', '+').title()
 
-    api_key = keys.AMANADA_API_KEY
+    api_key = 'ca58a32b'
 
     api_url = 'http://www.omdbapi.com/'
 
@@ -80,9 +80,8 @@ def get_reviews(imdbID):
         rating = comment.find_all('span', class_='rating-other-user-rating')
 
         if not rating:
-
             for cmt in comments:
-                movies.append({'title':titles, 'comment': cmt.text, 'rating':np.nan})
+                reviews.append({'title':titles, 'comment': cmt.text, 'rating':np.nan})
 
         else:
 
@@ -90,7 +89,7 @@ def get_reviews(imdbID):
                 user_rate = rates.find('span').text
 
                 for cmt in comments:
-                    movies.append({'title':titles, 'comment': cmt.text, 'rating':math.ceil(int(user_rate)/2)})
+                    reviews.append({'title':titles, 'comment': cmt.text, 'rating':math.ceil(int(user_rate)/2)})
 
     return pd.DataFrame(reviews)
 
