@@ -15,4 +15,3 @@ beautifulsoup4
 numpy == 1.18.5
 tensorflow-cpu
 nltk
-math
