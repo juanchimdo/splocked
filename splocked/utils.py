@@ -99,11 +99,11 @@ def movie_info(imdbID):
     summary and original title.
     '''
     url = f'https://www.imdb.com/title/{imdbID}'
-    response = requests.get(movie_url)
+    response = requests.get(url)
     soup = bsp(response.content, "html.parser")
 
     for img in soup.find("div", class_='poster').find_all('img'):
-        image = img.get('src')
+        image_url = img.get('src')
 
     movie_title = soup.find("div", class_='originalTitle')\
     .text.rstrip('original title)').rstrip(' (')
@@ -111,9 +111,7 @@ def movie_info(imdbID):
     summary_txt = soup.find("div", class_='summary_text')\
     .text.lstrip('\n').strip().rstrip('\n')
 
-    info = [movie_title, summary_txt, image]
-
-    return info
+    return movie_title, summary_txt, image_url
 
 if __name__ == "__main__":
     # A random review to convert

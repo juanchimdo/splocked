@@ -7,7 +7,7 @@ import json
 import requests
 from bs4 import BeautifulSoup as bsp
 from splocked.predict import preprocess_review
-from splocked.utils import imdb_api, get_reviews
+from splocked.utils import imdb_api, get_reviews, movie_info
 
 
 def predict(df, model, word_to_id):
@@ -30,7 +30,7 @@ CSS = f"""
 
 body {{
   background-size: cover;
-  color: #783252;
+  color: rgb(70,70,70);
   background-color: #156153;
 }}
 .block-container {{
@@ -58,8 +58,9 @@ SPLOCKED_TITLE = """
 <h1 id=splocked-title>SPLOCKED! </h1>
 """
 st.markdown("<link rel='preconnect' href='https://fonts.gstatic.com'> <link href='https://fonts.googleapis.com/css2?family=Alfa+Slab+One&display=swap' rel='stylesheet'>", unsafe_allow_html=True)
+st.markdown("<link href='https://fonts.googleapis.com/css?family=Material+Icons|Material+Icons+Outlined|Material+Icons+Two+Tone|Material+Icons+Round|Material+Icons+Sharp' rel='stylesheet'>", unsafe_allow_html=True)
 st.write(SPLOCKED_TITLE, unsafe_allow_html=True)
-
+st.write("<i class='fas fa-star'></i>", unsafe_allow_html=True)
 # header_img_url = 'https://s3-us-west-2.amazonaws.com/flx-editorial-wordpress/wp-content/uploads/2018/03/13153742/RT_300EssentialMovies_700X250.jpg'
 
 # HEADER_CSS = f"""
@@ -135,7 +136,7 @@ details details summary {
   border-radius: 5px;
   margin-bottom: 15px;
   background-color: #fff;
-  box-shadow: 0 4px 2px -2px rgba(50,50,50,0.5)
+  box-shadow: 0 4px 2px -2px rgba(50,50,50,0.5);
 }
 
 .green {
@@ -161,7 +162,7 @@ details details summary {
 }
 
 .emptybar {
-  background-color: rgba(200,200,200,0.5);
+  background-color: rgba(225,225,225,1);
   width: 100%;
   height: 100%;
   z-index:1001;
@@ -186,7 +187,7 @@ details details summary {
 }
 
 .border-top {
-  border-top: 1px solid rgb(100,100,100);
+  border-top: 1px solid rgb(200,200,200);
   width: 100%;
 }
 .padding-bottom {
@@ -194,6 +195,17 @@ details details summary {
 }
 .padding-top {
   padding: 10px 0px 0px 0px;
+}
+.padding-sides {
+  padding: 5px 60px;
+}
+.yellow {
+  color: yellow;
+  -webkit-text-stroke: 1px rgb(50, 50, 50);
+}
+.grey {
+  color: rgb(150, 150, 150);
+  -webkit-text-stroke: 1px rgb(50, 50, 50);
 }
 """
 
@@ -210,7 +222,7 @@ REVIEW_CARD = """
             <div class='padding-bottom'><strong>Spoiler-Meter {spoiler_proba}%<strong></div>
           <div>
           <div class='text-align-left'>
-              <div class='padding-bottom'>{title}</div>
+              <div class='padding-bottom'><big>{title}</big></div>
           </div>
           <div class="border-top padding-top">
             <div class="text-align-left">
@@ -222,9 +234,9 @@ REVIEW_CARD = """
           </div>
       </div>
     </summary>
-    <p>
-      {comment}
-    </p>
+    <div class="padding-sides">
+      <p>{comment}</p>
+    </div>
   </details>
 </div>
 """
@@ -232,7 +244,7 @@ REVIEW_CARD = """
 #st.write(NICE_CARD, unsafe_allow_html=True)
 def define_color(number):
     if number <= 25:
-        return "green"
+        return "#17BA14"
     if number <= 50:
         return "yellow"
     if number <= 75:
@@ -243,31 +255,80 @@ def define_color(number):
 def process_rating(rating):
   if np.isnan(rating):
     return ' '
-  else:
-    return f"{round(rating)}/5"
+  if rating == 1:
+    return "<i class='material-icons-round yellow'>star</i> <i class='material-icons-round grey'>star</i> <i class='material-icons-round grey'>star</i> <i class='material-icons-round grey'>star</i> <i class='material-icons-round grey'>star</i>"
+  if rating == 2:
+    return "<i class='material-icons-round yellow'>star</i> <i class='material-icons-round yellow'>star</i> <i class='material-icons-round grey'>star</i> <i class='material-icons-round grey'>star</i> <i class='material-icons-round grey'>star</i>"
+  if rating == 3:
+    return "<i class='material-icons-round yellow'>star</i> <i class='material-icons-round yellow'>star</i> <i class='material-icons-round yellow'>star</i> <i class='material-icons-round grey'>star</i> <i class='material-icons-round grey'>star</i>"
+  if rating == 4:
+    return "<i class='material-icons-round yellow'>star</i> <i class='material-icons-round yellow'>star</i> <i class='material-icons-round yellow'>star</i> <i class='material-icons-round yellow'>star</i> <i class='material-icons-round grey'>star</i>"
+  if rating == 5:
+    return "<i class='material-icons-round yellow'>star</i> <i class='material-icons-round yellow'>star</i> <i class='material-icons-round yellow'>star</i> <i class='material-icons-round yellow'>star</i> <i class='material-icons-round yellow'>star</i>"
+MOVIE_INFO_CSS = """
+.banner {
+  border-radius: 5px;
+  box-shadow: 0 4px 2px -2px rgba(50,50,50,0.5);
+}
+.flex-sa {
+  display: flex;
+  justify-content: space-around;
+}
+.text-align-center {
+  text-align: center;
+}
+.margin-around {
+  margin: 30px 60px;
+}
+"""
+
+MOVIE_INFO = """
+<div class="flex-sa margin-around">
+  <div>
+    <img class="banner" src={image_url}, width="180">
+  </div>
+  <div class="text-align-center">
+    <h1> {movie_title} </h1>
+    <p style="padding: 5px;"> {summary_txt} </p>
+  </div>
+</div>
+"""
+
+model = load_model(os.path.join('gru_model'))
+
+with open('gru_word_to_id.json') as json_file:
+    word_dict = json.load(json_file)
 
 def main():
 
-  model = load_model(os.path.join('gru_model'))
-
-  with open('gru_word_to_id.json') as json_file:
-      word_dict = json.load(json_file)
-
   movie_title = st.text_input("",\
    "Movie title here")
+  exclude_spoilers = st.checkbox("Exclude Spoilers")
 
   if movie_title != 'Movie title here':
       try:
           imdbID = imdb_api(movie_title)
           df = get_reviews(imdbID)
           df['spoiler_proba'] = predict(df, model, word_dict)
+          if exclude_spoilers:
+              df = df[df['spoiler_proba'] < 50]
+          df = df.sort_values(by=['spoiler_proba'])
+          movie_title, summary_txt, image_url = movie_info(imdbID)
+          movie = MOVIE_INFO.format(movie_title=movie_title, summary_txt=summary_txt, image_url=image_url)
           reviews = ''.join([REVIEW_CARD.format(title=row['title'], comment=row['comment'], spoiler_proba=round(row['spoiler_proba'], 2), color=define_color(row['spoiler_proba']), bar_width=(150*row['spoiler_proba'])/100, rating=process_rating(row['rating'])) for index, row in df.iterrows()])
+          MOVIE_HTML = f"""
+          <style>
+            {MOVIE_INFO_CSS}
+          </style>
+          {movie}
+          """
           REVIEW_HTML = f"""
           <style>
             {REVIEW_CSS}
           </style>
           {reviews}
           """
+          st.write(MOVIE_HTML, unsafe_allow_html=True)
           st.write(REVIEW_HTML, unsafe_allow_html=True)
       except:
           st.write("Try another movie title")
