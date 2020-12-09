@@ -306,32 +306,32 @@ def main():
   exclude_spoilers = st.checkbox("Exclude Spoilers")
 
   if movie_title != 'Movie title here':
-      try:
-          imdbID = imdb_api(movie_title)
-          df = get_reviews(imdbID)
-          df['spoiler_proba'] = predict(df, model, word_dict)
-          if exclude_spoilers:
-              df = df[df['spoiler_proba'] < 50]
-          df = df.sort_values(by=['spoiler_proba'])
-          movie_title, summary_txt, image_url = movie_info(imdbID)
-          movie = MOVIE_INFO.format(movie_title=movie_title, summary_txt=summary_txt, image_url=image_url)
-          reviews = ''.join([REVIEW_CARD.format(title=row['title'], comment=row['comment'], spoiler_proba=round(row['spoiler_proba'], 2), color=define_color(row['spoiler_proba']), bar_width=(150*row['spoiler_proba'])/100, rating=process_rating(row['rating'])) for index, row in df.iterrows()])
-          MOVIE_HTML = f"""
-          <style>
-            {MOVIE_INFO_CSS}
-          </style>
-          {movie}
-          """
-          REVIEW_HTML = f"""
-          <style>
-            {REVIEW_CSS}
-          </style>
-          {reviews}
-          """
-          st.write(MOVIE_HTML, unsafe_allow_html=True)
-          st.write(REVIEW_HTML, unsafe_allow_html=True)
-      except:
-          st.write("Try another movie title")
+      #try:
+      imdbID = imdb_api(movie_title)
+      df = get_reviews(imdbID)
+      df['spoiler_proba'] = predict(df, model, word_dict)
+      if exclude_spoilers:
+          df = df[df['spoiler_proba'] < 50]
+      df = df.sort_values(by=['spoiler_proba'])
+      movie_title, summary_txt, image_url = movie_info(imdbID)
+      movie = MOVIE_INFO.format(movie_title=movie_title, summary_txt=summary_txt, image_url=image_url)
+      reviews = ''.join([REVIEW_CARD.format(title=row['title'], comment=row['comment'], spoiler_proba=round(row['spoiler_proba'], 2), color=define_color(row['spoiler_proba']), bar_width=(150*row['spoiler_proba'])/100, rating=process_rating(row['rating'])) for index, row in df.iterrows()])
+      MOVIE_HTML = f"""
+      <style>
+        {MOVIE_INFO_CSS}
+      </style>
+      {movie}
+      """
+      REVIEW_HTML = f"""
+      <style>
+        {REVIEW_CSS}
+      </style>
+      {reviews}
+      """
+      st.write(MOVIE_HTML, unsafe_allow_html=True)
+      st.write(REVIEW_HTML, unsafe_allow_html=True)
+      #except:
+          #st.write("Try another movie title")
 
 
 if __name__ == "__main__":
