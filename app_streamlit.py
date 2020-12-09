@@ -316,12 +316,12 @@ def main():
       #movie_title, summary_txt, image_url = movie_info(imdbID)
       #movie = MOVIE_INFO.format(movie_title=movie_title, summary_txt=summary_txt, image_url=image_url)
       reviews = ''.join([REVIEW_CARD.format(title=row['title'], comment=row['comment'], spoiler_proba=round(row['spoiler_proba'], 2), color=define_color(row['spoiler_proba']), bar_width=(150*row['spoiler_proba'])/100, rating=process_rating(row['rating'])) for index, row in df.iterrows()])
-      MOVIE_HTML = f"""
-      <style>
-        {MOVIE_INFO_CSS}
-      </style>
-      {movie}
-      """
+      #MOVIE_HTML = f"""
+      #<style>
+      #  {MOVIE_INFO_CSS}
+      #</style>
+      #{movie}
+      #"""
       REVIEW_HTML = f"""
       <style>
         {REVIEW_CSS}
