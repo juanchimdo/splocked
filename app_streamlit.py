@@ -328,7 +328,7 @@ def main():
       </style>
       {reviews}
       """
-      st.write(MOVIE_HTML, unsafe_allow_html=True)
+      #st.write(MOVIE_HTML, unsafe_allow_html=True)
       st.write(REVIEW_HTML, unsafe_allow_html=True)
       #except:
           #st.write("Try another movie title")
