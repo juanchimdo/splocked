@@ -1,12 +1,10 @@
 # Data analysis
 - Document here the project: splocked
-- Description: Project Description
-- Data Source:
-- Type of analysis:
+- Description: Predicting spoilers in your favourite movies
+- Data Source: IMDb
+- Type of analysis: NLP and RNN
 
-Please document the project the better you can.
-
-# Stratup the project
+# Startup the project
 
 The initial setup.
 
@@ -61,10 +59,10 @@ Functionnal test with a script:
 ```bash
   $ cd /tmp
   $ splocked-run
-``` 
+```
 
 # Continus integration
-## Github 
+## Github
 Every push of `master` branch will execute `.github/workflows/pythonpackages.yml` docker jobs.
 ## Gitlab
 Every push of `master` branch will execute `.gitlab-ci.yml` docker jobs.
