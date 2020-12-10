@@ -306,12 +306,12 @@ def main():
   exclude_spoilers = st.checkbox("Exclude Spoilers")
 
   if movie_title != 'Movie title here':
-      #try:
+    try:
       imdbID = imdb_api(movie_title)
       df = get_reviews(imdbID)
       df['spoiler_proba'] = predict(df, model, word_dict)
       if exclude_spoilers:
-          df = df[df['spoiler_proba'] < 50]
+        df = df[df['spoiler_proba'] < 50]
       df = df.sort_values(by=['spoiler_proba'])
       #movie_title, summary_txt, image_url = movie_info(imdbID)
       #movie = MOVIE_INFO.format(movie_title=movie_title, summary_txt=summary_txt, image_url=image_url)
@@ -324,14 +324,14 @@ def main():
       #"""
       REVIEW_HTML = f"""
       <style>
-        {REVIEW_CSS}
+      {REVIEW_CSS}
       </style>
       {reviews}
       """
       #st.write(MOVIE_HTML, unsafe_allow_html=True)
       st.write(REVIEW_HTML, unsafe_allow_html=True)
-      #except:
-          #st.write("Try another movie title")
+    except:
+      st.write("Try another movie title")
 
 
 if __name__ == "__main__":
